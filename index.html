@@ -1,1 +1,44 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><link rel="icon" href="./app.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta property="og:title" content="Terrarium"/><meta property="og:description" content="Terraria port for WebAssembly. Play Terraria online in the browser."/><meta name="description" content="Terraria port for WebAssembly. Play Terraria online in the browser."/><link rel="canonical" href="https://terraria.mercurywork.shop"/><title>Terrarium</title><script type="module" crossorigin src="./assets/index.js"></script><link rel="stylesheet" crossorigin href="./assets/index.css"></head><body><div id="app"></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Terraria Local Boot</title>
+    <!-- 1. Points to the coi-serviceworker.js in your root sidebar -->
+    <script src="./coi-serviceworker.js"></script>
+</head>
+<body style="margin:0; background:#000; color:#0f0; font-family:monospace; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center;">
+    <div id="status">> INITIALIZING LOCAL ENGINE...</div>
+
+    <script type="module">
+        // 2. These match the folder structure in your StackBlitz sidebar
+        const dotnetJs = "./_framework/dotnet.js";
+        const wasmFile = "./_framework/dotnet.native.6p12adq9gl.wasm";
+
+        async function start() {
+            const status = document.getElementById('status');
+            
+            if (!window.crossOriginIsolated) {
+                status.innerHTML = "> SECURITY UPDATE REQUIRED<br>Click 'Open in New Tab' icon or Refresh (Ctrl+R).";
+                return;
+            }
+
+            status.innerText = "> SECURITY ACTIVE. LOADING WASM...";
+            
+            try {
+                // Import the local dotnet engine
+                const { dotnet } = await import(dotnetJs);
+                await dotnet.withConfig({
+                    mainAssemblyName: "terraria-web2",
+                    resources: {
+                        wasmNative: { "dotnet.native.wasm": wasmFile }
+                    }
+                }).create();
+                status.style.display = "none";
+            } catch (err) {
+                status.innerText = "> ENGINE ERROR: " + err.message;
+            }
+        }
+        start();
+    </script>
+</body>
+</html>
